@@ -1,61 +1,145 @@
-Secure Remote Access Hub
-Dashboard web e hub centralizado para o gerenciamento de acesso remoto seguro a computadores. Desenvolvido no laboratório Ecolab (FURG), o sistema permite monitorar o status de máquinas em rede e solicitar credenciais de acesso temporárias, aplicando a rotação automática de chaves ao fim de cada sessão.
+# Secure Remote Access Hub
 
-Funcionalidades
-Monitoramento em Tempo Real: Visualização do status das máquinas conectadas (online/offline e métricas básicas de uso).
+Dashboard web e hub centralizado para o gerenciamento de acesso remoto
+seguro a computadores. Desenvolvido no laboratório Ecolab (FURG), o
+sistema permite monitorar o status de máquinas em rede e solicitar
+credenciais de acesso temporárias, aplicando a rotação automática de
+chaves ao fim de cada sessão.
 
-Geração de Credenciais sob Demanda: Botão de solicitação de acesso remoto temporário direto na interface web.
+## Funcionalidades
 
-Rotação Automática de Chaves: Invalidação e troca da senha do software de controle imediatamente após a desconexão do usuário, prevenindo acessos não autorizados subsequentes.
+-   **Monitoramento em tempo real:** visualização do status das máquinas
+    conectadas (online/offline e métricas básicas de uso).
+-   **Geração de credenciais sob demanda:** solicitação de acesso remoto
+    temporário diretamente pela interface web.
+-   **Rotação automática de chaves:** invalidação e troca da senha do
+    software de controle imediatamente após a desconexão do usuário,
+    prevenindo acessos não autorizados subsequentes.
+-   **Controle centralizado (hub):** servidor principal responsável por
+    alocar e distribuir o controle para os nós da rede.
 
-Controle Centralizado (Hub): Servidor principal que aloca e distribui o controle para os nós da rede.
+## Tecnologias utilizadas
 
-Tecnologias Utilizadas
-Back-end: Python, Flask
+-   **Back-end:** Python e Flask.
+-   **Banco de dados:** PostgreSQL.
+-   **Front-end:** HTML5 e CSS3 (Vanilla).
+-   **Software de acesso remoto:** a definir --- em fase de pesquisa de
+    viabilidade técnica para integração via CLI ou API.
 
-Banco de Dados: PostgreSQL
+## Estrutura inicial do projeto
 
-Front-end: HTML5, CSS3 (Vanilla)
+``` text
+/
+├── app/                 # Núcleo da aplicação Flask: rotas, modelos e regras de negócio
+├── templates/           # Templates HTML do dashboard
+├── static/              # Arquivos estáticos, incluindo CSS
+├── client_scripts/      # Scripts executados nas máquinas clientes
+├── run.py               # Ponto de entrada da aplicação
+├── requirements.txt     # Dependências Python
+├── .env                 # Variáveis de ambiente (não versionar)
+└── README.md
+```
 
-Software de Acesso Remoto: A definir (em fase de pesquisa de viabilidade técnica para integração via CLI ou API)
+Os diretórios e arquivos acima representam a estrutura inicial planejada
+e podem ser ajustados durante o desenvolvimento.
 
-Estrutura Inicial do Projeto
-/app: Núcleo da aplicação Flask, rotas, modelos de banco de dados e lógica de negócio.
+## Como executar em ambiente de desenvolvimento
 
-/templates: Arquivos HTML do dashboard.
+### 1. Clonar o repositório
 
-/static: Arquivos CSS para a estilização da interface.
-
-/client_scripts: Scripts de automação que serão instalados nas máquinas clientes para receber comandos do hub e executar a troca local da chave de acesso.
-
-Como Executar (Ambiente de Desenvolvimento)
-1. Clone o repositório
-
-Bash
+``` bash
 git clone https://github.com/seu-usuario/secure-remote-access-hub.git
 cd secure-remote-access-hub
-2. Configure o Banco de Dados
-Certifique-se de ter o PostgreSQL rodando localmente e crie um banco de dados dedicado para o projeto.
+```
 
-3. Crie e ative o ambiente virtual Python
+> Substitua `seu-usuario` pelo nome de usuário ou organização que
+> hospeda o repositório.
 
-Bash
+### 2. Configurar o banco de dados
+
+Certifique-se de que o PostgreSQL esteja instalado e em execução. Crie
+um banco de dados dedicado ao projeto e tenha em mãos as credenciais de
+conexão.
+
+### 3. Criar e ativar o ambiente virtual Python
+
+``` bash
 python -m venv venv
-source venv/bin/activate  # No Windows use: venv\Scripts\activate
-4. Instale as dependências
+```
 
-Bash
+Linux/macOS:
+
+``` bash
+source venv/bin/activate
+```
+
+Windows (Prompt de Comando):
+
+``` bat
+venv\Scripts\activate.bat
+```
+
+Windows (PowerShell):
+
+``` powershell
+.\venv\Scripts\Activate.ps1
+```
+
+### 4. Instalar as dependências
+
+Com o ambiente virtual ativado, execute:
+
+``` bash
 pip install -r requirements.txt
-5. Configure as Variáveis de Ambiente
-Crie um arquivo .env na raiz do projeto (este arquivo não deve ser commitado) e adicione as seguintes chaves:
+```
 
-Snippet de código
+### 5. Configurar as variáveis de ambiente
+
+Crie um arquivo `.env` na raiz do projeto. **Não versione esse arquivo
+nem compartilhe segredos reais.**
+
+Exemplo de configuração:
+
+``` ini
 FLASK_APP=run.py
 FLASK_ENV=development
-SECRET_KEY=sua_chave_secreta_aqui
+SECRET_KEY=substitua_por_uma_chave_secreta
 DATABASE_URL=postgresql://usuario:senha@localhost:5432/nome_do_banco
-6. Execute a aplicação
+```
 
-Bash
+Ajuste os valores de conexão conforme a configuração local do
+PostgreSQL. Para ambientes de produção, use uma chave secreta forte e
+configure as variáveis de ambiente de acordo com o método de implantação
+escolhido.
+
+### 6. Executar a aplicação
+
+Com o ambiente virtual ativado e as variáveis configuradas:
+
+``` bash
 flask run
-O painel estará acessível através do navegador em [http://127.0.0.1:5000](http://127.0.0.1:5000).
+```
+
+O painel deverá estar disponível no endereço:
+
+<http://127.0.0.1:5000>
+
+## Segurança e considerações de desenvolvimento
+
+-   As credenciais temporárias devem ter escopo e duração limitados.
+-   A troca de senha deve ocorrer de forma autenticada e segura, com
+    tratamento de falhas e registro de auditoria.
+-   Os scripts clientes devem autenticar as mensagens recebidas do hub e
+    rejeitar comandos não autorizados.
+-   Segredos, senhas e credenciais de acesso não devem ser gravados em
+    logs nem armazenados em texto puro.
+-   O acesso ao dashboard deve exigir autenticação e autorização
+    adequadas.
+-   A integração com o software de acesso remoto ainda precisa ser
+    definida e validada quanto à viabilidade técnica.
+
+## Status do projeto
+
+Projeto em fase inicial de definição e desenvolvimento. A escolha do
+software de acesso remoto e a integração com seus mecanismos de CLI ou
+API permanecem pendentes de pesquisa técnica.
