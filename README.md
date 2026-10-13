@@ -42,6 +42,72 @@ chaves ao fim de cada sessão.
 Os diretórios e arquivos acima representam a estrutura inicial planejada
 e podem ser ajustados durante o desenvolvimento.
 
+## Arquitetura e Fluxo de Comunicação
+
+Para evitar bloqueios de firewall na rede da universidade, o sistema utiliza uma arquitetura de *Polling / Heartbeat*, onde a máquina cliente sempre inicia a comunicação com o servidor central.
+
+```mermaid
+sequenceDiagram
+    actor User as Usuário (Front-end)
+    participant API as API (Flask / Hub)
+    participant DB as Banco de Dados (PostgreSQL)
+    participant PC as Script Cliente (PC 1 - RustDesk)
+
+    %% Fluxo de Inicialização / Cadastro de Senha (PC -> Hub)
+    Note over PC, DB: Conexão iniciada pelo cliente (Outbound) evita bloqueios
+    PC->>PC: 1. Gera senha inicial do RustDesk
+    PC->>API: 2. Envia ID e Senha ativa (POST /status)
+    API->>DB: 3. Salva credenciais e marca como 'Disponível'
+
+    %% Fluxo de Solicitação de Acesso (Instantâneo)
+    User->>API: 4. Solicita acesso remoto
+    API->>DB: 5. Consulta máquina 'Disponível'
+    DB-->>API: 6. Retorna dados e senha armazenada do PC 1
+    API->>DB: 7. Registra sessão e altera status para 'Ocupado'
+    API-->>User: 8. Exibe credencial instantaneamente na interface web
+
+    %% Fluxo de Encerramento (Polling / Heartbeat)
+    User->>API: 9. Aciona botão "Encerrar Conexão"
+    API->>DB: 10. Altera status da máquina para 'Aguardando Rotação'
+    
+    Note over PC, API: O PC faz consultas periódicas de poucos segundos (Heartbeat)
+    PC->>API: 11. Heartbeat: "Qual o meu status?" (GET /status)
+    API-->>PC: 12. Responde: "Sessão encerrada, rotacionar chave"
+    
+    PC->>PC: 13. Altera senha local do RustDesk
+    PC->>API: 14. Envia nova senha gerada (POST /status)
+    API->>DB: 15. Atualiza DB com nova senha e marca como 'Disponível' ```
+
+## Modelagem do Banco de Dados
+erDiagram
+    USUARIOS ||--o{ SESSOES : realiza
+    MAQUINAS ||--o{ SESSOES : recebe
+
+    USUARIOS {
+        int id PK
+        string nome
+        string email_matricula UK "Único (Para login)"
+        string senha_hash "Senha criptografada"
+    }
+
+    MAQUINAS {
+        int id PK
+        string identificacao "Ex: PC-Bancada-01"
+        string rustdesk_id UK "ID fixo do RustDesk"
+        string senha_atual "Chave temporária ativa"
+        string status "disponivel, ocupado, aguardando_rotacao, offline"
+        timestamp ultimo_heartbeat "Para checar se o PC está ligado"
+    }
+
+    SESSOES {
+        int id PK
+        int usuario_id FK
+        int maquina_id FK
+        string senha_utilizada "Log de auditoria de segurança"
+        timestamp inicio_sessao
+        timestamp fim_sessao "Pode ser nulo até o encerramento"
+    }
+
 ## Como executar em ambiente de desenvolvimento
 
 ### 1. Clonar o repositório
