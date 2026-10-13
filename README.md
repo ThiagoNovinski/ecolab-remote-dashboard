@@ -48,12 +48,10 @@ e podem ser ajustados durante o desenvolvimento.
 ### 1. Clonar o repositório
 
 ``` bash
-git clone https://github.com/seu-usuario/secure-remote-access-hub.git
+git clone https://github.com/ThiagoNovinski/ecolab-remote-dashboard
 cd secure-remote-access-hub
 ```
 
-> Substitua `seu-usuario` pelo nome de usuário ou organização que
-> hospeda o repositório.
 
 ### 2. Configurar o banco de dados
 
