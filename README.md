@@ -23,8 +23,7 @@ chaves ao fim de cada sessão.
 -   **Back-end:** Python e Flask.
 -   **Banco de dados:** PostgreSQL.
 -   **Front-end:** HTML5 e CSS3 (Vanilla).
--   **Software de acesso remoto:** a definir --- em fase de pesquisa de
-    viabilidade técnica para integração via CLI ou API.
+-   **Software de acesso remoto:** RustDesk.
 
 ## Estrutura inicial do projeto
 
