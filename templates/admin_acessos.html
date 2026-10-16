@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hub Ecolab - Admin de Acessos</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #333; color: white; }
+        .em-uso { color: #d9534f; font-weight: bold; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; }
+        .btn-voltar { text-decoration: none; background: #0056b3; color: white; padding: 10px 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <h2>Histórico Geral de Acessos</h2>
+        <a href="/dashboard" class="btn-voltar">Voltar ao Painel de Máquinas</a>
+    </div>
+    
+    <table>
+        <tr>
+            <th>ID da Sessão</th>
+            <th>Usuário</th>
+            <th>Máquina</th>
+            <th>Início do Acesso</th>
+            <th>Fim do Acesso</th>
+            <th>Tempo de Uso</th>
+        </tr>
+        {% for s in sessoes %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <!-- O backref puxa o ID e o Nome do usuário atrelado a esta sessão -->
+            <td>ID {{ s.usuario.id }} - {{ s.usuario.nome }}</td>
+            
+            <!-- O backref puxa o ID e a Identificação da máquina -->
+            <td>ID {{ s.maquina.id }} - {{ s.maquina.identificacao }}</td>
+            
+            <td>{{ s.inicio_sessao.strftime('%d/%m/%Y %H:%M:%S') if s.inicio_sessao else 'N/D' }}</td>
+            
+            <td>
+                {% if s.fim_sessao %}
+                    {{ s.fim_sessao.strftime('%d/%m/%Y %H:%M:%S') }}
+                {% else %}
+                    <span class="em-uso">Sessão Ativa</span>
+                {% endif %}
+            </td>
+            
+            <td>
+                {% if s.fim_sessao and s.inicio_sessao %}
+                    <!-- O Jinja2 consegue calcular a diferença de tempo automaticamente -->
+                    {{ (s.fim_sessao - s.inicio_sessao) }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align: center;">Nenhum registo de acesso encontrado.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

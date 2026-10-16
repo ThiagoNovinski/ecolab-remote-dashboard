@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hub Ecolab - Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #0056b3; color: white; }
+        .status-online { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Painel de Controle - Ecolab</h2>
+    <table>
+        <tr>
+            <th>ID da Máquina</th>
+            <th>Identificação</th>
+            <th>RustDesk ID</th>
+            <th>Senha Atual</th>
+            <th>Último Contacto</th>
+            <th>Estado</th>
+        </tr>
+        {% for m in maquinas %}
+        <tr>
+            <td>{{ m.id }}</td>
+            <td>{{ m.identificacao }}</td>
+            <td>{{ m.rustdesk_id }}</td>
+            <td>{{ m.senha_atual }}</td>
+            <td>{{ m.ultimo_heartbeat.strftime('%d/%m/%Y %H:%M:%S') if m.ultimo_heartbeat else 'Nunca' }}</td>
+            <td class="status-online">{{ m.status }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align: center;">Nenhuma instância registada ainda.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
