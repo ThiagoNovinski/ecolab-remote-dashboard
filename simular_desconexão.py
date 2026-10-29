@@ -2,7 +2,7 @@ import requests
 
 # Simulando o encerramento da sessão que criamos no passo anterior (ID 1)
 payload = {
-    "sessao_id": 1
+    "sessao_id": 2
 }
 
 resposta = requests.post("http://127.0.0.1:5000/desconectar", json=payload)

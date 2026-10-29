@@ -4,37 +4,130 @@
     <title>Hub Ecolab - Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
-        table { width: 100%; border-collapse: collapse; background: white; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px;}
         th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
         th { background-color: #0056b3; color: white; }
         .status-online { color: green; font-weight: bold; }
+        .status-uso { color: #d9534f; font-weight: bold; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Estilos dos botões e senha */
+        .btn { padding: 8px 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-acessar { background-color: #28a745; }
+        .btn-acessar:hover { background-color: #218838; }
+        .btn-desconectar { background-color: #dc3545; }
+        .btn-desconectar:hover { background-color: #c82333; }
+        .senha-box { background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 1.1em; color: #333; display: inline-block; margin-top: 5px; border: 1px solid #ccc; }
+        .ocupado-text { color: #6c757d; font-style: italic; }
     </style>
 </head>
 <body>
-    <h2>Painel de Controle - Ecolab</h2>
+    <div class="header-container">
+        <h2>Painel de Controle - Ecolab</h2>
+        <div>
+            <!-- Mostra o nome do usuário que fez o login -->
+            <span>Bem-vindo, <strong>{{ current_user.nome }}</strong></span> | 
+            
+            <!-- Botão visível apenas para administradores -->
+            {% if current_user.is_admin %}
+                <a href="{{ url_for('views.admin_acessos') }}" style="color: #0056b3; text-decoration: none; font-weight: bold; margin-right: 15px;">Histórico de Acessos</a> |
+            {% endif %}
+            
+            <!-- Link para alterar senha -->
+            <a href="{{ url_for('auth.alterar_senha') }}" style="color: #6c757d; text-decoration: none; font-weight: bold; margin-right: 15px;">Alterar Senha</a> |
+
+            <a href="{{ url_for('auth.logout') }}" style="color: #d9534f; text-decoration: none; font-weight: bold;">Sair</a>
+        </div>
+    </div>
+    
     <table>
         <tr>
-            <th>ID da Máquina</th>
             <th>Identificação</th>
             <th>RustDesk ID</th>
-            <th>Senha Atual</th>
-            <th>Último Contacto</th>
             <th>Estado</th>
+            <th>Último Contato</th>
+            <th>Ação / Senha</th>
         </tr>
         {% for m in maquinas %}
         <tr>
-            <td>{{ m.id }}</td>
             <td>{{ m.identificacao }}</td>
             <td>{{ m.rustdesk_id }}</td>
-            <td>{{ m.senha_atual }}</td>
+            
+            <!-- Controle de cores do Status -->
+            {% if m.status == 'disponivel' %}
+                <td class="status-online">Disponível</td>
+            {% else %}
+                <td class="status-uso">Em Uso</td>
+            {% endif %}
+            
             <td>{{ m.ultimo_heartbeat.strftime('%d/%m/%Y %H:%M:%S') if m.ultimo_heartbeat else 'Nunca' }}</td>
-            <td class="status-online">{{ m.status }}</td>
+            
+            <td>
+                <!-- Lógica Jinja para encontrar a sessão que não tem data de fim (Sessão Ativa) -->
+                {% set controle = namespace(sessao_ativa=None) %}
+                {% for sessao in m.sessoes %}
+                    {% if sessao.fim_sessao == None %}
+                        {% set controle.sessao_ativa = sessao %}
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Regras de Exibição dos Botões -->
+                {% if m.status == 'disponivel' %}
+                    <button class="btn btn-acessar" onclick="acessarMaquina({{ m.id }}, {{ current_user.id }})">Acessar PC</button>
+                    
+                {% elif m.status == 'em_uso' %}
+                    <!-- Verifica se a sessão ativa pertence ao usuário logado -->
+                    {% if controle.sessao_ativa and controle.sessao_ativa.usuario_id == current_user.id %}
+                        <button class="btn btn-desconectar" onclick="desconectarMaquina({{ controle.sessao_ativa.id }})">Encerrar Uso</button>
+                        <br>
+                        <span class="senha-box">Senha: {{ m.senha_atual }}</span>
+                    {% else %}
+                        <span class="ocupado-text">Bloqueado por outro aluno</span>
+                    {% endif %}
+                {% endif %}
+            </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" style="text-align: center;">Nenhuma instância registada ainda.</td>
+            <td colspan="5" style="text-align: center;">Nenhuma instância registrada ainda.</td>
         </tr>
         {% endfor %}
     </table>
+
+    <script>
+        // Dispara a rota /acessar enviando um JSON
+        async function acessarMaquina(maquina_id, usuario_id) {
+            const response = await fetch('/acessar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ maquina_id: maquina_id, usuario_id: usuario_id })
+            });
+            
+            if (response.ok) {
+                window.location.reload(); // Recarrega a página para atualizar o botão e exibir a senha
+            } else {
+                const data = await response.json();
+                alert("Erro ao acessar: " + data.erro);
+            }
+        }
+
+        // Dispara a rota /desconectar enviando um JSON
+        async function desconectarMaquina(sessao_id) {
+            if (!confirm("Tem certeza que deseja encerrar o acesso a esta máquina?")) return;
+
+            const response = await fetch('/desconectar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessao_id: sessao_id })
+            });
+            
+            if (response.ok) {
+                window.location.reload(); // Recarrega a página para liberar a máquina para os outros
+            } else {
+                const data = await response.json();
+                alert("Erro ao desconectar: " + data.erro);
+            }
+        }
+    </script>
 </body>
 </html>
