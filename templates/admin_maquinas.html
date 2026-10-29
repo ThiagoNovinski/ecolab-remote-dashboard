@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hub Ecolab - Gerenciar Máquinas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-voltar { text-decoration: none; background: #6c757d; color: white; padding: 10px 15px; border-radius: 5px; font-weight: bold;}
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-group { display: flex; gap: 10px; align-items: center; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex-grow: 1; }
+        button { padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-add { background-color: #28a745; }
+        .btn-del { background-color: #dc3545; padding: 6px 10px; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #333; color: white; }
+        .flash { color: #d9534f; font-weight: bold; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <h2>Gerenciamento de Instâncias (Admin)</h2>
+        <a href="{{ url_for('views.dashboard') }}" class="btn-voltar">Voltar ao Dashboard</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Card de Adicionar Nova Máquina -->
+    <div class="card">
+        <h3>Registrar Novo Computador</h3>
+        <form method="POST" action="{{ url_for('views.admin_maquinas') }}" class="form-group">
+            <input type="text" name="identificacao" placeholder="Identificação (ex: Ecolab-PC-02)" required>
+            <input type="text" name="rustdesk_id" placeholder="RustDesk ID (Somente números)" required>
+            <button type="submit" class="btn-add">Adicionar Máquina</button>
+        </form>
+    </div>
+
+    <!-- Tabela de Máquinas Existentes -->
+    <table>
+        <tr>
+            <th>ID Interno</th>
+            <th>Identificação</th>
+            <th>RustDesk ID</th>
+            <th>Status Atual</th>
+            <th>Ações</th>
+        </tr>
+        {% for m in maquinas %}
+        <tr>
+            <td>{{ m.id }}</td>
+            <td>{{ m.identificacao }}</td>
+            <td>{{ m.rustdesk_id }}</td>
+            <td>{{ m.status }}</td>
+            <td>
+                <!-- O botão excluir precisa ser um formulário para enviar o método POST de forma segura -->
+                <form method="POST" action="{{ url_for('views.excluir_maquina', id=m.id) }}" style="display:inline;" onsubmit="return confirm('ATENÇÃO: Excluir esta máquina apagará todo o histórico de acessos vinculados a ela. Tem certeza?');">
+                    <button type="submit" class="btn-del">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align: center;">Nenhuma máquina cadastrada.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -27,6 +27,7 @@ class Maquina(db.Model):
     senha_atual = db.Column(db.String(100))
     status = db.Column(db.String(50), default='disponivel')
     ultimo_heartbeat = db.Column(db.DateTime)
+    ativo = db.Column(db.Boolean, default=True) # Nova flag de controle
     
     sessoes = db.relationship('Sessao', backref='maquina', lazy=True)
 

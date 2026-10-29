@@ -13,9 +13,9 @@ def update_status():
     if not dados or 'rustdesk_id' not in dados:
         return jsonify({"erro": "Dados inválidos ou rustdesk_id ausente"}), 400
 
-    rustdesk_id = dados.get('rustdesk_id')
+    rustdesk_id = str(dados.get('rustdesk_id')).strip().lower()
     senha_atual = dados.get('senha')
-    identificacao = dados.get('identificacao', f'PC-{rustdesk_id}')
+    rustdesk_id = str(dados.get('rustdesk_id')).strip().lower()
 
     # Verifica se esta máquina já existe no banco de dados
     maquina = Maquina.query.filter_by(rustdesk_id=rustdesk_id).first()
@@ -23,7 +23,6 @@ def update_status():
     if maquina:
         # Atualiza a máquina existente
         maquina.senha_atual = senha_atual
-        maquina.status = 'disponivel'
         maquina.ultimo_heartbeat = datetime.utcnow()
     else:
         # Cadastra a máquina automaticamente no primeiro contato (Auto-Registro)

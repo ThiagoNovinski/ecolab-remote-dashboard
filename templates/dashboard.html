@@ -30,6 +30,7 @@
             
             <!-- Botão visível apenas para administradores -->
             {% if current_user.is_admin %}
+                <a href="{{ url_for('views.admin_maquinas') }}" style="color: #28a745; text-decoration: none; font-weight: bold; margin-right: 15px;">Gerenciar Máquinas</a> |
                 <a href="{{ url_for('views.admin_acessos') }}" style="color: #0056b3; text-decoration: none; font-weight: bold; margin-right: 15px;">Histórico de Acessos</a> |
             {% endif %}
             

@@ -10,9 +10,9 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
-        nome = request.form.get('nome')
-        email = request.form.get('email')
-        matricula = request.form.get('matricula')
+        nome = request.form.get('nome').strip().title()
+        email = request.form.get('email').strip().lower()
+        matricula = request.form.get('matricula').strip().lower()
         senha = request.form.get('senha')
         
         from models import Usuario, db
@@ -41,7 +41,7 @@ def registro():
         db.session.commit()
         
         flash("Conta criada com sucesso! Faça seu login.")
-        return redirect(url_for('views.login'))
+        return redirect(url_for('views.index'))
         
     return render_template('registro.html')
 
@@ -49,7 +49,7 @@ def registro():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = request.form.get('email').strip().lower()
         senha = request.form.get('senha')
         
         from models import Usuario
